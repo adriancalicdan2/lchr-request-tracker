@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luo City Spa - Employee Management/罗城水疗 - 员工管理</title>
+    <link rel="icon" type="image/x-icon" href="/logo.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2E7D32;
+            --secondary-color: #4CAF50;
+            --accent-color: #81C784;
+            --light-bg: #F1F8E9;
+            --dark-text: #1B5E20;
+            --spa-green: #388E3C;
+            --spa-cream: #E8F5E9;
+            --spa-light: #C8E6C9;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--spa-cream) 0%, #ffffff 100%);
+            min-height: 100vh;
+            color: var(--dark-text);
+        }
+
+        .login-container {
+            max-width: 420px;
+            margin: 80px auto;
+            animation: fadeIn 0.8s ease-in;
+        }
+
+        .brand-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--spa-green));
+            color: white;
+            padding: 2rem 1rem;
+            border-radius: 15px 15px 0 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .brand-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" opacity="0.1"><path fill="white" d="M50,20 C60,15 75,20 80,30 C85,40 80,55 70,60 C60,65 45,60 40,50 C35,40 40,25 50,20 Z"/></svg>') repeat;
+        }
+
+        .brand-logo {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+            color: #C8E6C9;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .brand-name {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+            letter-spacing: 1px;
+            color: white;
+        }
+
+        .brand-subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+            font-weight: 300;
+            color: #E8F5E9;
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(46, 125, 50, 0.1);
+            transition: transform 0.3s ease;
+            background: white;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(46, 125, 50, 0.15);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--spa-green));
+            border: none;
+            padding: 12px 30px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(46, 125, 50, 0.4);
+            background: linear-gradient(135deg, var(--spa-green), var(--primary-color));
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 12px rgba(46, 125, 50, 0.08);
+            border-left: 4px solid var(--spa-green);
+            transition: all 0.3s ease;
+        }
+
+        .dashboard-card:hover {
+            box-shadow: 0 6px 20px rgba(46, 125, 50, 0.12);
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(76, 175, 80, 0.05);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .mobile-friendly {
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-friendly { font-size: 13px; }
+            .login-container { margin: 40px auto; }
+            .brand-header { padding: 1.5rem 1rem; }
+            .brand-name { font-size: 1.5rem; }
+        }
+
+        .form-control:focus {
+            border-color: var(--spa-green);
+            box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+        }
+
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .navbar-brand {
+            font-weight: 600;
+            color: white !important;
+        }
+
+        .app-container {
+            display: none;
+        }
+
+        .badge {
+            font-size: 0.75em;
+        }
+
+        .table th {
+            border-top: none;
+            font-weight: 600;
+            background-color: var(--spa-cream);
+            color: var(--dark-text);
+        }
+
+        /* Green-themed badges */
+        .badge-spa {
+            background: linear-gradient(135deg, var(--primary-color), var(--spa-green));
+            color: white;
+        }
+
+        /* Welcome message styling */
+        .welcome-message {
+            background: linear-gradient(135deg, var(--spa-cream), white);
+            border-radius: 10px;
+            padding: 1rem;
+            border-left: 4px solid var(--spa-green);
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(46, 125, 50, 0.1);
+        }
+
+        /* Status badges with green colors */
+        .status-approved {
+            background: linear-gradient(135deg, #4CAF50, #388E3C);
+            color: white;
+        }
+
+        .status-pending {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            color: white;
+        }
+
+        .status-rejected {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            color: white;
+        }
+
+        /* Green navigation */
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), var(--spa-green)) !important;
+            box-shadow: 0 2px 10px rgba(46, 125, 50, 0.3);
+        }
+
+        /* Button variants */
+        .btn-outline-success {
+            border-color: var(--spa-green);
+            color: var(--spa-green);
+        }
+
+        .btn-outline-success:hover {
+            background-color: var(--spa-green);
+            border-color: var(--spa-green);
+            color: white;
+        }
+
+        .spinner-border.text-primary {
+            color: var(--spa-green) !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Page -->
+    <div id="loginPage">
+        <div class="login-container">
+            <div class="card">
+                <div class="brand-header">
+                    <div class="brand-logo">
+                        <i class="fas fa-spa"></i>
+                    </div>
+                    <div class="brand-name">LUO CITY SPA/罗城水疗</div>
+                    <div class="brand-subtitle">Employee Management System/员工管理系统</div>
+                </div>
+                <div class="card-body">
+                    <form id="loginForm">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address/邮箱地址</label>
+                            <input type="email" class="form-control" id="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password/密码</label>
+                            <input type="password" class="form-control" id="password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-sign-in-alt me-2"></i>Sign In/登录
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application Page -->
+    <div id="appPage" class="app-container">
+        <nav class="navbar navbar-expand-lg navbar-dark">
+            <div class="container">
+                <span class="navbar-brand">
+                    <i class="fas fa-spa me-2"></i>LUO CITY SPA/罗城水疗
+                </span>
+                <div class="navbar-nav ms-auto">
+                    <span class="navbar-text me-3" id="userWelcome">Welcome, User/欢迎</span>
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle"></i>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="showHelp()"><i class="fas fa-question-circle me-2"></i>Help/帮助</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()"><i class="fas fa-sign-out-alt me-2"></i>Logout/退出</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container mt-4">
+            <!-- Welcome Message -->
+            <div class="welcome-message">
+                <h4 id="welcomeTitle">Welcome to Luo City Spa Portal/欢迎来到罗城水疗门户</h4>
+                <p class="mb-0" id="welcomeSubtitle">Manage your schedule and requests efficiently/高效管理您的日程和请求</p>
+            </div>
+
+            <!-- Employee View -->
+            <div id="employeeView">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="dashboard-card">
+                            <h5 class="mb-3"><i class="fas fa-calendar-plus me-2"></i>Leave/请假</h5>
+                            <form id="leaveForm">
+                                <div class="mb-3">
+                                    <label class="form-label">Leave Type/请假类型</label>
+                                    <select class="form-select" id="leaveType" required>
+                                        <option value="">Select Leave Type/选择请假类型</option>
+                                        <option value="Vacation">Unpaid Leave/无薪假</option>
+                                        <option value="Vacation">Vacation/年假</option>
+                                        <option value="Sick Leave">Sick Leave/病假</option>
+                                        <option value="Sick Leave">Unpaid Sick Leave/无薪病假</option>
+                                        <option value="Personal">Personal Leave/事假</option>
+                                        <option value="Emergency">Emergency/紧急假期</option>
+                                    </select>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Start Date/开始日期</label>
+                                        <input type="date" class="form-control" id="leaveStartDate" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">End Date/结束日期</label>
+                                        <input type="date" class="form-control" id="leaveEndDate" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Reason/原因</label>
+                                    <textarea class="form-control" id="leaveReason" rows="3" required placeholder="Please provide details for your time off request.../请提供您的休假请求详情..."></textarea>
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <button type="button" class="btn btn-primary" onclick="submitLeaveRequest()">
+                                        <i class="fas fa-paper-plane me-2"></i>Submit Request/提交请求
+                                    </button>
+                                    <button type="button" class="btn btn-outline-success" onclick="clearLeaveForm()">
+                                        <i class="fas fa-times me-2"></i>Clear Form/清除表单
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="dashboard-card">
+                            <h5 class="mb-3"><i class="fas fa-clock me-2"></i>Overtime & Adjustments/加班与调整</h5>
+                            <form id="overtimeForm">
+                                <div class="mb-3">
+                                    <label class="form-label">Request Type/请求类型</label>
+                                    <select class="form-select" id="overtimeType" required>
+                                        <option value="Overtime">Overtime/加班</option>
+                                        <option value="Time Adjustment">Offset/调休</option>
+                                        <option value="Shift Swap">Change Off/换休</option>
+                                    </select>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Start Date & Time/开始日期时间</label>
+                                        <input type="datetime-local" class="form-control" id="overtimeStartDate" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">End Date & Time/结束日期时间</label>
+                                        <input type="datetime-local" class="form-control" id="overtimeEndDate" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Reason/原因</label>
+                                    <textarea class="form-control" id="overtimeReason" rows="3" required placeholder="Please explain the reason for this request.../请解释此请求的原因..."></textarea>
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <button type="button" class="btn btn-primary" onclick="submitOvertimeRequest()">
+                                        <i class="fas fa-paper-plane me-2"></i>Submit Request/提交请求
+                                    </button>
+                                    <button type="button" class="btn btn-outline-success" onclick="clearOvertimeForm()">
+                                        <i class="fas fa-times me-2"></i>Clear Form/清除表单
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card">
+                    <h5 class="mb-3"><i class="fas fa-history me-2"></i>My Requests/我的请求</h5>
+                    <div id="myRequestsContainer">
+                        <!-- Requests will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Head View -->
+            <div id="headView">
+                <div class="dashboard-card">
+                    <h5 class="mb-3"><i class="fas fa-tasks me-2"></i>Team Requests/团队请求 <span id="headDepartment" class="badge badge-spa ms-2"></span></h5>
+                    <div id="requestsContainer">
+                        <!-- Department requests will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- HR View -->
+            <div id="hrView">
+                <!-- Request Filters -->
+                <div class="dashboard-card">
+                    <h5 class="mb-3"><i class="fas fa-filter me-2"></i>Request Filters/请求筛选</h5>
+                    <div class="row g-3">
+                        <div class="col-md-2">
+                            <label class="form-label">Search Name/ID/搜索姓名/ID</label>
+                            <input type="text" class="form-control" id="searchName" placeholder="Enter name or employee ID/输入姓名或员工ID">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Department/部门</label>
+                            <select class="form-select" id="filterDepartment">
+                                <option value="">All Departments/所有部门</option>
+                                <option value="Operations">Operations/运营部</option>
+                                <option value="Therapist">Therapist/理疗师</option>
+                                <option value="Back Office">Back Office/后勤部</option>
+                                <option value="Technical">Technical/技术部</option>
+                                <option value="Kitchen">Kitchen/厨房</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Request Type/请求类型</label>
+                            <select class="form-select" id="filterRequestType">
+                                <option value="">All Types/所有类型</option>
+                                <option value="Leave">Leave/请假</option>
+                                <option value="Overtime">Overtime/加班</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Status/状态</label>
+                            <select class="form-select" id="filterStatus">
+                                <option value="">All Status/所有状态</option>
+                                <option value="Pending">Pending/待处理</option>
+                                <option value="Approved">Approved/已批准</option>
+                                <option value="Rejected">Rejected/已拒绝</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Start Date/开始日期</label>
+                            <input type="date" class="form-control" id="startDateFilter">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">End Date/结束日期</label>
+                            <input type="date" class="form-control" id="endDateFilter">
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button class="btn btn-outline-success" id="clearFilters">
+                                    <i class="fas fa-times me-1"></i>Clear Filters/清除筛选
+                                </button>
+                                <button class="btn btn-success" id="downloadExcelBtn">
+                                    <i class="fas fa-file-excel me-1"></i>Download Excel File/下载Excel文件
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- All Requests -->
+                <div class="dashboard-card">
+                    <h5 class="mb-3"><i class="fas fa-list me-2"></i>All Staff Requests/所有员工请求</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover mobile-friendly">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Employee/员工</th>
+                                    <th>Department/部门</th>
+                                    <th>Position/职位</th>
+                                    <th>Type/类型</th>
+                                    <th>Details/详情</th>
+                                    <th>Status/状态</th>
+                                    <th>Submitted/提交时间</th>
+                                </tr>
+                            </thead>
+                            <tbody id="allRequestsTable">
+                                <!-- All requests will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Employee Management -->
+                <div class="dashboard-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0"><i class="fas fa-users me-2"></i>Staff Management/员工管理</h5>
+                        <button class="btn btn-primary btn-sm" id="addEmployeeBtn">
+                            <i class="fas fa-plus me-1"></i>Add Employee/添加员工
+                        </button>
+                    </div>
+                    <div id="employeesContainer">
+                        <!-- Employee list will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Modal -->
+    <div class="modal fade" id="messageModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="messageModalTitle">Message/消息</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="messageModalBody"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK/确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee Form Modal -->
+    <div class="modal fade" id="employeeModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="employeeFormTitle">Add New Staff Member/添加新员工</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="employeeForm">
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label">Employee ID */员工ID *</label>
+                                <input type="text" class="form-control" id="employeeId" required placeholder="e.g., SPA001/例如：SPA001">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Full Name */全名 *</label>
+                                <input type="text" class="form-control" id="employeeName" required placeholder="Enter full name/输入全名">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Email */邮箱 *</label>
+                                <input type="email" class="form-control" id="employeeEmail" required placeholder="employee@luocityspa.com">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Department */部门 *</label>
+                                <select class="form-select" id="employeeDepartment" required>
+                                    <option value="">Select Department/选择部门</option>
+                                    <option value="Operations">Operations/运营部</option>
+                                    <option value="Therapist">Therapist/理疗师</option>
+                                    <option value="Back Office">Back Office/后勤部</option>
+                                    <option value="Technical">Technical/技术部</option>
+                                    <option value="Kitchen">Kitchen/厨房</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Role */角色 *</label>
+                                <select class="form-select" id="employeeRole" required>
+                                    <option value="">Select Role/选择角色</option>
+                                    <option value="Employee">Employee/员工</option>
+                                    <option value="Head">Head/主管</option>
+                                    <option value="HR">HR/人力资源</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Position */职位 *</label>
+                                <input type="text" class="form-control" id="employeePosition" required placeholder="e.g., Senior Therapist, Receptionist, Chef/例如：高级理疗师、接待员、厨师">
+                            </div>
+                            <div class="col-12" id="employeePasswordGroup">
+                                <label class="form-label">Password */密码 *</label>
+                                <input type="password" class="form-control" id="employeePassword" required placeholder="Set initial password/设置初始密码">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-success" data-bs-dismiss="modal">Cancel/取消</button>
+                        <button type="submit" class="btn btn-primary">Save Employee/保存员工</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Excel Download Modal -->
+    <div class="modal fade" id="excelModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-file-excel me-2 text-success"></i>Download Excel Report/下载Excel报告</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted mb-3">Select the date range for the report:/选择报告日期范围：</p>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Start Date */开始日期 *</label>
+                            <input type="date" class="form-control" id="excelStartDate" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">End Date */结束日期 *</label>
+                            <input type="date" class="form-control" id="excelEndDate" required>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            The report will include all requests submitted within the selected date range./报告将包含选定日期范围内提交的所有请求。
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-success" data-bs-dismiss="modal">Cancel/取消</button>
+                    <button type="button" class="btn btn-success" id="confirmExcelDownload">
+                        <i class="fas fa-download me-1"></i>Download Excel/下载Excel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Cancel Request Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-ban me-2"></i>Cancel Request/取消请求</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">Please provide a reason for cancellation:/请提供取消原因：</p>
+                <div class="mb-3">
+                    <label class="form-label">Cancellation Reason/取消原因</label>
+                    <textarea class="form-control" id="cancelReason" rows="3" required placeholder="Explain why you want to cancel this request.../解释您为什么要取消此请求..."></textarea>
+                </div>
+                <div class="alert alert-info">
+                    <small>
+                        <i class="fas fa-info-circle me-1"></i>
+                        <strong>Note:</strong> If your request is pending, it will be cancelled immediately. If it's already approved, a cancellation request will be sent to your manager for approval.<br>
+                        <strong>注意：</strong> 如果您的请求待处理，将立即取消。如果已批准，将向您的经理发送取消请求等待批准。
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-success" data-bs-dismiss="modal">Cancel/取消</button>
+                <button type="button" class="btn btn-warning" onclick="submitCancellation()">
+                    <i class="fas fa-ban me-1"></i>Submit Cancellation/提交取消请求
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="app.js"></script>
+</body>
+</html>
