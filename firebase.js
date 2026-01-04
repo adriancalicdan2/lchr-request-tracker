@@ -1,4 +1,3 @@
-// firebase.js
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
 import { 
     getAuth, 
@@ -21,10 +20,6 @@ import {
     serverTimestamp,
     addDoc
 } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
-import { 
-    getFunctions, 
-    httpsCallable 
-} from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-functions.js';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -41,18 +36,12 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const functions = getFunctions(app);
-
-// Initialize the Cloud Function
-const deleteEmployeeFunction = httpsCallable(functions, 'deleteEmployee');
 
 export const firebaseService = {
     // Authentication Methods
     async loginUser(email, password) {
         try {
-            console.log('Attempting login for:', email);
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            console.log('Login successful for:', email);
             return userCredential.user;
         } catch (error) {
             console.error('Login error:', error);
@@ -63,7 +52,6 @@ export const firebaseService = {
     async logoutUser() {
         try {
             await signOut(auth);
-            console.log('User logged out successfully');
         } catch (error) {
             console.error('Logout error:', error);
             throw error;
@@ -77,17 +65,13 @@ export const firebaseService = {
     // Employee Management Methods
     async createEmployee(employeeData, password) {
         try {
-            console.log('Creating employee with data:', employeeData);
-            
-            // Create a temporary auth instance to avoid affecting current session
+            // We use a secondary "App" instance to create the new user.
+            // This ensures the current admin stays logged in while creating the new account.
             const tempApp = initializeApp(firebaseConfig, "TempApp");
             const tempAuth = getAuth(tempApp);
             
-            // Create the new user account using temporary auth
             const userCredential = await createUserWithEmailAndPassword(tempAuth, employeeData.email, password);
-            console.log('Auth user created with UID:', userCredential.user.uid);
             
-            // Add employee data to Firestore
             const employeeDoc = {
                 employeeId: employeeData.employeeId,
                 name: employeeData.name,
@@ -100,10 +84,10 @@ export const firebaseService = {
                 updatedAt: serverTimestamp()
             };
             
+            // Save to Firestore
             await setDoc(doc(db, 'employees', userCredential.user.uid), employeeDoc);
-            console.log('Employee document created successfully');
             
-            // Sign out from temporary auth
+            // Cleanup the temp app
             await signOut(tempAuth);
             
             return employeeDoc;
@@ -115,18 +99,11 @@ export const firebaseService = {
 
     async getAllEmployees() {
         try {
-            console.log('Fetching all employees...');
             const querySnapshot = await getDocs(collection(db, 'employees'));
             const employees = [];
-            
             querySnapshot.forEach((doc) => {
-                employees.push({
-                    id: doc.id,
-                    ...doc.data()
-                });
+                employees.push({ id: doc.id, ...doc.data() });
             });
-            
-            console.log('Loaded employees:', employees.length);
             return employees;
         } catch (error) {
             console.error('Error getting employees:', error);
@@ -136,23 +113,12 @@ export const firebaseService = {
 
     async getEmployeeByEmail(email) {
         try {
-            console.log('Getting employee by email:', email);
-            const q = query(
-                collection(db, 'employees'),
-                where('email', '==', email)
-            );
+            const q = query(collection(db, 'employees'), where('email', '==', email));
             const querySnapshot = await getDocs(q);
-            
             if (!querySnapshot.empty) {
                 const doc = querySnapshot.docs[0];
-                const employeeData = {
-                    id: doc.id,
-                    ...doc.data()
-                };
-                console.log('Employee found:', employeeData.name);
-                return employeeData;
+                return { id: doc.id, ...doc.data() };
             }
-            console.log('No employee found with email:', email);
             return null;
         } catch (error) {
             console.error('Error getting employee by email:', error);
@@ -160,113 +126,63 @@ export const firebaseService = {
         }
     },
 
-    async deleteEmployee(employeeId) {
+    // --- UPDATED DELETE METHOD (No NPM/Backend required) ---
+    async deleteEmployee(uid) {
         try {
-            console.log('Deleting employee via Cloud Function:', employeeId);
+            console.log('Deleting employee record from database:', uid);
             
-            // Call the Cloud Function to delete both Firestore doc and Auth user
-            const result = await deleteEmployeeFunction({ employeeId });
+            // Delete the document from the 'employees' collection.
+            // This removes their profile. app.js will block login if this profile is missing.
+            await deleteDoc(doc(db, 'employees', uid));
             
-            console.log('Cloud Function result:', result.data);
-            return result.data;
+            console.log('Employee record deleted.');
+            return { success: true, message: 'Employee access revoked (Record Deleted).' };
             
         } catch (error) {
-            console.error('Error deleting employee via Cloud Function:', error);
-            
-            // Provide user-friendly error messages
-            let errorMessage = 'Failed to delete employee';
-            
-            if (error.details) {
-                // Cloud Function error
-                errorMessage = error.details.message || errorMessage;
-            } else if (error.code === 'functions/not-found') {
-                errorMessage = 'Delete function not available. Please contact administrator.';
-            } else if (error.code === 'functions/unauthenticated') {
-                errorMessage = 'You must be logged in to delete employees.';
-            } else if (error.code === 'functions/internal') {
-                errorMessage = 'Server error occurred while deleting employee.';
-            }
-            
-            throw new Error(errorMessage);
+            console.error('Error deleting employee:', error);
+            throw new Error('Failed to delete employee record.');
         }
     },
 
     // Request Management Methods
     async submitLeaveRequest(requestData) {
         try {
-            console.log('Submitting leave request:', requestData);
             const docRef = await addDoc(collection(db, 'leaveRequests'), {
-                employeeName: requestData.employeeName,
-                employeeId: requestData.employeeId,
-                department: requestData.department,
-                position: requestData.position,
-                leaveType: requestData.leaveType,
-                startDate: requestData.startDate,
-                endDate: requestData.endDate,
-                totalDays: requestData.totalDays,
-                reason: requestData.reason,
+                ...requestData,
                 type: 'Leave',
                 status: 'Pending',
                 submissionDate: serverTimestamp(),
-                cancellationRequested: false,
-                cancellationReason: '',
-                cancellationDate: null
+                cancellationRequested: false
             });
-            console.log('Leave request submitted with ID:', docRef.id);
             return docRef.id;
         } catch (error) {
             console.error('Error submitting leave request:', error);
-            throw new Error(`Failed to submit leave request: ${error.message}`);
+            throw error;
         }
     },
 
     async submitOvertimeRequest(requestData) {
         try {
-            console.log('Submitting overtime request:', requestData);
             const docRef = await addDoc(collection(db, 'overtimeRequests'), {
-                employeeName: requestData.employeeName,
-                employeeId: requestData.employeeId,
-                department: requestData.department,
-                position: requestData.position,
-                adjustmentType: requestData.adjustmentType,
-                startDate: requestData.startDate,
-                endDate: requestData.endDate,
-                totalHours: requestData.totalHours,
-                reason: requestData.reason,
+                ...requestData,
                 type: 'Overtime',
                 status: 'Pending',
                 submissionDate: serverTimestamp(),
-                cancellationRequested: false,
-                cancellationReason: '',
-                cancellationDate: null
+                cancellationRequested: false
             });
-            console.log('Overtime request submitted with ID:', docRef.id);
             return docRef.id;
         } catch (error) {
             console.error('Error submitting overtime request:', error);
-            throw new Error(`Failed to submit overtime request: ${error.message}`);
+            throw error;
         }
     },
 
     async getLeaveRequestsByEmployee(employeeId) {
         try {
-            console.log('Getting leave requests for employee:', employeeId);
-            const q = query(
-                collection(db, 'leaveRequests'),
-                where('employeeId', '==', employeeId)
-            );
+            const q = query(collection(db, 'leaveRequests'), where('employeeId', '==', employeeId));
             const querySnapshot = await getDocs(q);
             const requests = [];
-            
-            querySnapshot.forEach((doc) => {
-                requests.push({
-                    id: doc.id,
-                    type: 'Leave',
-                    ...doc.data()
-                });
-            });
-            
-            console.log('Found leave requests:', requests.length);
+            querySnapshot.forEach((doc) => requests.push({ id: doc.id, type: 'Leave', ...doc.data() }));
             return requests;
         } catch (error) {
             console.error('Error getting leave requests:', error);
@@ -276,23 +192,10 @@ export const firebaseService = {
 
     async getOvertimeRequestsByEmployee(employeeId) {
         try {
-            console.log('Getting overtime requests for employee:', employeeId);
-            const q = query(
-                collection(db, 'overtimeRequests'),
-                where('employeeId', '==', employeeId)
-            );
+            const q = query(collection(db, 'overtimeRequests'), where('employeeId', '==', employeeId));
             const querySnapshot = await getDocs(q);
             const requests = [];
-            
-            querySnapshot.forEach((doc) => {
-                requests.push({
-                    id: doc.id,
-                    type: 'Overtime',
-                    ...doc.data()
-                });
-            });
-            
-            console.log('Found overtime requests:', requests.length);
+            querySnapshot.forEach((doc) => requests.push({ id: doc.id, type: 'Overtime', ...doc.data() }));
             return requests;
         } catch (error) {
             console.error('Error getting overtime requests:', error);
@@ -302,39 +205,14 @@ export const firebaseService = {
 
     async getPendingRequestsByDepartment(department) {
         try {
-            console.log('Getting pending requests for department:', department);
-            const [leaveRequestsSnapshot, overtimeRequestsSnapshot] = await Promise.all([
-                getDocs(query(
-                    collection(db, 'leaveRequests'),
-                    where('department', '==', department),
-                    where('status', '==', 'Pending')
-                )),
-                getDocs(query(
-                    collection(db, 'overtimeRequests'),
-                    where('department', '==', department),
-                    where('status', '==', 'Pending')
-                ))
+            const [leaveSnapshot, overtimeSnapshot] = await Promise.all([
+                getDocs(query(collection(db, 'leaveRequests'), where('department', '==', department), where('status', '==', 'Pending'))),
+                getDocs(query(collection(db, 'overtimeRequests'), where('department', '==', department), where('status', '==', 'Pending')))
             ]);
-
+            
             const requests = [];
-
-            leaveRequestsSnapshot.forEach((doc) => {
-                requests.push({
-                    id: doc.id,
-                    type: 'Leave',
-                    ...doc.data()
-                });
-            });
-
-            overtimeRequestsSnapshot.forEach((doc) => {
-                requests.push({
-                    id: doc.id,
-                    type: 'Overtime',
-                    ...doc.data()
-                });
-            });
-
-            console.log('Found pending requests:', requests.length);
+            leaveSnapshot.forEach(doc => requests.push({ id: doc.id, type: 'Leave', ...doc.data() }));
+            overtimeSnapshot.forEach(doc => requests.push({ id: doc.id, type: 'Overtime', ...doc.data() }));
             return requests;
         } catch (error) {
             console.error('Error getting pending requests:', error);
@@ -344,65 +222,37 @@ export const firebaseService = {
 
     async updateRequestStatus(requestId, status, type, approvedBy) {
         try {
-            console.log('Updating request status:', { requestId, status, type, approvedBy });
-            
             const collectionName = type === 'Leave' ? 'leaveRequests' : 'overtimeRequests';
-            const requestRef = doc(db, collectionName, requestId);
-            
-            // Check if document exists
-            const requestDoc = await getDoc(requestRef);
-            if (!requestDoc.exists()) {
-                throw new Error('Request document not found');
-            }
-            
-            await updateDoc(requestRef, {
+            await updateDoc(doc(db, collectionName, requestId), {
                 status: status,
                 approvedBy: approvedBy,
                 approvalDate: serverTimestamp()
             });
-            
-            console.log('Request status updated successfully');
         } catch (error) {
-            console.error('Error updating request status:', error);
+            console.error('Error updating status:', error);
             throw error;
         }
     },
 
     async cancelRequest(requestId, type, reason) {
         try {
-            console.log('Cancelling request:', { requestId, type, reason });
-            
             const collectionName = type === 'Leave' ? 'leaveRequests' : 'overtimeRequests';
             const requestRef = doc(db, collectionName, requestId);
-            
-            // Check if document exists
             const requestDoc = await getDoc(requestRef);
-            if (!requestDoc.exists()) {
-                throw new Error('Request document not found');
-            }
             
-            const requestData = requestDoc.data();
-            
-            if (requestData.status === 'Pending') {
-                // If pending, cancel immediately
-                await updateDoc(requestRef, {
-                    status: 'Cancelled',
+            if (requestDoc.data().status === 'Pending') {
+                await updateDoc(requestRef, { 
+                    status: 'Cancelled', 
                     cancellationReason: reason,
                     cancellationDate: serverTimestamp()
                 });
-                console.log('Pending request cancelled immediately');
-            } else if (requestData.status === 'Approved') {
-                // If approved, request cancellation
-                await updateDoc(requestRef, {
-                    cancellationRequested: true,
-                    cancellationReason: reason,
-                    cancellationDate: serverTimestamp()
-                });
-                console.log('Cancellation requested for approved request');
             } else {
-                throw new Error('Cannot cancel request with current status');
+                await updateDoc(requestRef, { 
+                    cancellationRequested: true, 
+                    cancellationReason: reason,
+                    cancellationDate: serverTimestamp() 
+                });
             }
-            
         } catch (error) {
             console.error('Error cancelling request:', error);
             throw error;
@@ -411,18 +261,12 @@ export const firebaseService = {
 
     async approveCancellation(requestId, type) {
         try {
-            console.log('Approving cancellation for request:', { requestId, type });
-            
             const collectionName = type === 'Leave' ? 'leaveRequests' : 'overtimeRequests';
-            const requestRef = doc(db, collectionName, requestId);
-            
-            await updateDoc(requestRef, {
+            await updateDoc(doc(db, collectionName, requestId), {
                 status: 'Cancelled',
                 cancellationApproved: true,
                 cancellationApprovalDate: serverTimestamp()
             });
-            
-            console.log('Cancellation approved successfully');
         } catch (error) {
             console.error('Error approving cancellation:', error);
             throw error;
@@ -431,18 +275,11 @@ export const firebaseService = {
 
     async rejectCancellation(requestId, type) {
         try {
-            console.log('Rejecting cancellation for request:', { requestId, type });
-            
             const collectionName = type === 'Leave' ? 'leaveRequests' : 'overtimeRequests';
-            const requestRef = doc(db, collectionName, requestId);
-            
-            await updateDoc(requestRef, {
+            await updateDoc(doc(db, collectionName, requestId), {
                 cancellationRequested: false,
-                cancellationReason: '',
-                cancellationDate: null
+                cancellationReason: ''
             });
-            
-            console.log('Cancellation rejected successfully');
         } catch (error) {
             console.error('Error rejecting cancellation:', error);
             throw error;
@@ -451,41 +288,20 @@ export const firebaseService = {
 
     async getAllRequests() {
         try {
-            console.log('Fetching all requests...');
-            const [leaveRequestsSnapshot, overtimeRequestsSnapshot] = await Promise.all([
+            const [leaveSnapshot, overtimeSnapshot] = await Promise.all([
                 getDocs(collection(db, 'leaveRequests')),
                 getDocs(collection(db, 'overtimeRequests'))
             ]);
-
+            
             const requests = [];
-
-            leaveRequestsSnapshot.forEach((doc) => {
-                const data = doc.data();
-                requests.push({
-                    id: doc.id,
-                    type: 'Leave',
-                    ...data
-                });
-            });
-
-            overtimeRequestsSnapshot.forEach((doc) => {
-                const data = doc.data();
-                requests.push({
-                    id: doc.id,
-                    type: 'Overtime',
-                    ...data
-                });
-            });
-
-            // Sort by submission date (newest first)
-            const sortedRequests = requests.sort((a, b) => {
+            leaveSnapshot.forEach(doc => requests.push({ id: doc.id, type: 'Leave', ...doc.data() }));
+            overtimeSnapshot.forEach(doc => requests.push({ id: doc.id, type: 'Overtime', ...doc.data() }));
+            
+            return requests.sort((a, b) => {
                 const dateA = a.submissionDate?.toDate ? a.submissionDate.toDate() : new Date(a.submissionDate);
                 const dateB = b.submissionDate?.toDate ? b.submissionDate.toDate() : new Date(b.submissionDate);
                 return dateB - dateA;
             });
-
-            console.log('Total requests found:', sortedRequests.length);
-            return sortedRequests;
         } catch (error) {
             console.error('Error getting all requests:', error);
             throw error;
@@ -494,39 +310,14 @@ export const firebaseService = {
 
     async getCancellationRequests() {
         try {
-            console.log('Fetching cancellation requests...');
-            const [leaveRequestsSnapshot, overtimeRequestsSnapshot] = await Promise.all([
-                getDocs(query(
-                    collection(db, 'leaveRequests'),
-                    where('cancellationRequested', '==', true)
-                )),
-                getDocs(query(
-                    collection(db, 'overtimeRequests'),
-                    where('cancellationRequested', '==', true)
-                ))
+            const [leaveSnapshot, overtimeSnapshot] = await Promise.all([
+                getDocs(query(collection(db, 'leaveRequests'), where('cancellationRequested', '==', true))),
+                getDocs(query(collection(db, 'overtimeRequests'), where('cancellationRequested', '==', true)))
             ]);
-
+            
             const requests = [];
-
-            leaveRequestsSnapshot.forEach((doc) => {
-                const data = doc.data();
-                requests.push({
-                    id: doc.id,
-                    type: 'Leave',
-                    ...data
-                });
-            });
-
-            overtimeRequestsSnapshot.forEach((doc) => {
-                const data = doc.data();
-                requests.push({
-                    id: doc.id,
-                    type: 'Overtime',
-                    ...data
-                });
-            });
-
-            console.log('Found cancellation requests:', requests.length);
+            leaveSnapshot.forEach(doc => requests.push({ id: doc.id, type: 'Leave', ...doc.data() }));
+            overtimeSnapshot.forEach(doc => requests.push({ id: doc.id, type: 'Overtime', ...doc.data() }));
             return requests;
         } catch (error) {
             console.error('Error getting cancellation requests:', error);
@@ -534,6 +325,3 @@ export const firebaseService = {
         }
     }
 };
-
-// Initialize debug info on load
-console.log('Firebase service initialized');
