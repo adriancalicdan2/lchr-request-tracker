@@ -341,37 +341,53 @@
                         <div class="dashboard-card">
                             <h5 class="mb-3"><i class="fas fa-clock me-2"></i>Overtime & Adjustments/加班与调整</h5>
                             <form id="overtimeForm">
-                                <div class="mb-3">
-                                    <label class="form-label">Request Type/请求类型</label>
-                                    <select class="form-select" id="overtimeType" required>
-                                        <option value="Overtime">Overtime/加班</option>
-                                        <option value="Time Adjustment">Offset/调休</option>
-                                        <option value="Shift Swap">Change Off/换休</option>
-                                    </select>
-                                </div>
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label">Start Date & Time/开始日期时间</label>
-                                        <input type="datetime-local" class="form-control" id="overtimeStartDate" required>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">End Date & Time/结束日期时间</label>
-                                        <input type="datetime-local" class="form-control" id="overtimeEndDate" required>
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Reason/原因</label>
-                                    <textarea class="form-control" id="overtimeReason" rows="3" required placeholder="Please explain the reason for this request.../请解释此请求的原因..."></textarea>
-                                </div>
-                                <div class="d-grid gap-2">
-                                    <button type="button" class="btn btn-primary" onclick="submitOvertimeRequest()">
-                                        <i class="fas fa-paper-plane me-2"></i>Submit Request/提交请求
-                                    </button>
-                                    <button type="button" class="btn btn-outline-success" onclick="clearOvertimeForm()">
-                                        <i class="fas fa-times me-2"></i>Clear Form/清除表单
-                                    </button>
-                                </div>
-                            </form>
+    <div class="mb-3">
+        <label class="form-label">Request Type/请求类型</label>
+        <select class="form-select" id="overtimeType" required>
+            <option value="Overtime">Overtime/加班</option>
+            <option value="Time Adjustment">Offset/调休</option>
+            <option value="Shift Swap">Change Off/换休</option> </select>
+    </div>
+
+    <div id="standardOvertimeInputs">
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">Start Date & Time/开始日期时间</label>
+                <input type="datetime-local" class="form-control" id="overtimeStartDate">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">End Date & Time/结束日期时间</label>
+                <input type="datetime-local" class="form-control" id="overtimeEndDate">
+            </div>
+        </div>
+    </div>
+
+    <div id="changeOffInputs" style="display: none;">
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label text-primary fw-bold">Original Off Date/原定休息日</label>
+                <input type="date" class="form-control" id="originalOffDate">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-success fw-bold">New Off Date (Chosen)/选择的休息日</label>
+                <input type="date" class="form-control" id="newOffDate">
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Reason/原因</label>
+        <textarea class="form-control" id="overtimeReason" rows="3" required placeholder="Please explain..."></textarea>
+    </div>
+    <div class="d-grid gap-2">
+        <button type="button" class="btn btn-primary" onclick="submitOvertimeRequest()">
+            <i class="fas fa-paper-plane me-2"></i>Submit Request/提交请求
+        </button>
+        <button type="button" class="btn btn-outline-success" onclick="clearOvertimeForm()">
+            <i class="fas fa-times me-2"></i>Clear Form/清除表单
+        </button>
+    </div>
+</form>
                         </div>
                     </div>
                 </div>
