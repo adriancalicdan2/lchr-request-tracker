@@ -14,8 +14,7 @@ const employeesPerPage = 10;
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
 
-    // --- NEW: Dynamic Overtime Form Listener ---
-    // This watches the dropdown and switches between "Time Inputs" and "Date Inputs"
+    // --- Dynamic Overtime Form Listener ---
     const overtimeTypeSelect = document.getElementById('overtimeType');
     if (overtimeTypeSelect) {
         overtimeTypeSelect.addEventListener('change', function() {
@@ -23,20 +22,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const changeOffInputs = document.getElementById('changeOffInputs');
             
             if (this.value === 'Shift Swap') {
-                // Show "Change Off" inputs, Hide "Time" inputs
                 standardInputs.style.display = 'none';
                 changeOffInputs.style.display = 'block';
-                
-                // Toggle required attributes so the browser validates correctly
                 document.getElementById('overtimeStartDate').required = false;
                 document.getElementById('overtimeEndDate').required = false;
                 document.getElementById('originalOffDate').required = true;
                 document.getElementById('newOffDate').required = true;
             } else {
-                // Show "Time" inputs, Hide "Change Off" inputs
                 standardInputs.style.display = 'block';
                 changeOffInputs.style.display = 'none';
-                
                 document.getElementById('overtimeStartDate').required = true;
                 document.getElementById('overtimeEndDate').required = true;
                 document.getElementById('originalOffDate').required = false;
@@ -209,7 +203,6 @@ async function submitLeaveRequest() {
     }
 }
 
-// --- UPDATED: submitOvertimeRequest with Change Off Logic ---
 async function submitOvertimeRequest() {
     const adjustmentType = document.getElementById('overtimeType').value;
     const reason = document.getElementById('overtimeReason').value;
@@ -217,7 +210,6 @@ async function submitOvertimeRequest() {
     let startDate, endDate, totalHours;
 
     if (adjustmentType === 'Shift Swap') {
-        // --- LOGIC FOR CHANGE OFF ---
         startDate = document.getElementById('originalOffDate').value;
         endDate = document.getElementById('newOffDate').value;
 
@@ -225,10 +217,8 @@ async function submitOvertimeRequest() {
             showMessage('Error/错误', 'Please fill in Original Off Date, New Off Date, and Reason./请填写原定休息日、新休息日和原因。');
             return;
         }
-        totalHours = 0; // Not applicable for Swap
-
+        totalHours = 0;
     } else {
-        // --- LOGIC FOR STANDARD OVERTIME/OFFSET ---
         startDate = document.getElementById('overtimeStartDate').value;
         endDate = document.getElementById('overtimeEndDate').value;
 
@@ -279,20 +269,16 @@ function clearLeaveForm() {
 
 function clearOvertimeForm() {
     document.getElementById('overtimeType').value = 'Overtime';
-    // Clear Standard inputs
     document.getElementById('overtimeStartDate').value = '';
     document.getElementById('overtimeEndDate').value = '';
-    // Clear Change Off inputs
     document.getElementById('originalOffDate').value = '';
     document.getElementById('newOffDate').value = '';
     document.getElementById('overtimeReason').value = '';
-    
-    // Reset inputs visibility
     const event = new Event('change');
     document.getElementById('overtimeType').dispatchEvent(event);
 }
 
-// --- UPDATED: loadMyRequests with Swap Display ---
+// --- loadMyRequests with Swap Display ---
 async function loadMyRequests() {
     const container = document.getElementById('myRequestsContainer');
     container.innerHTML = `
@@ -339,7 +325,6 @@ async function loadMyRequests() {
         allRequests.forEach(request => {
             const statusClass = getStatusBadgeClass(request.status);
             
-            // --- Custom Display for Swap vs Normal ---
             let dateDisplay, durationDisplay;
             if (request.adjustmentType === 'Shift Swap') {
                 dateDisplay = `
@@ -354,7 +339,6 @@ async function loadMyRequests() {
                     `<strong>${request.totalHours} hrs</strong>`;
             }
 
-            // --- Cancel Logic ---
             let showCancelButton = false;
             const isActive = request.status !== 'Cancelled' && request.status !== 'Rejected';
             const isNotPendingCancel = !request.cancellationRequested;
@@ -483,14 +467,7 @@ async function loadCancellationRequests() {
     if (currentUser.role !== 'Head' && currentUser.role !== 'HR') return;
     const containerId = currentUser.role === 'Head' ? 'cancellationRequestsContainer' : 'hrCancellationRequestsContainer';
     let container = document.getElementById(containerId);
-    if (!container) {
-        const parentContainer = currentUser.role === 'Head' ? document.getElementById('requestsContainer').parentNode : document.getElementById('allRequestsTable').parentNode.parentNode;
-        const cancellationSection = document.createElement('div');
-        cancellationSection.className = 'dashboard-card';
-        cancellationSection.innerHTML = `<h5 class="mb-3">Cancellation Requests</h5><div id="${containerId}"></div>`;
-        parentContainer.appendChild(cancellationSection);
-        container = document.getElementById(containerId);
-    }
+    if (!container) return; // Guard clause
     
     try {
         let requests = await firebaseService.getCancellationRequests();
@@ -667,8 +644,6 @@ async function generateExcelReport() {
         }));
 
         const ws = XLSX.utils.json_to_sheet(excelRows);
-        
-        // Styles
         const headerStyle = { fill: { fgColor: { rgb: "2E7D32" } }, font: { color: { rgb: "FFFFFF" }, bold: true }, alignment: { horizontal: "center" } };
         const range = XLSX.utils.decode_range(ws['!ref']);
         for (let R = range.s.r; R <= range.e.r; ++R) {
@@ -690,20 +665,88 @@ async function generateExcelReport() {
     } catch (e) { showMessage('Error', e.message); }
 }
 
-// Employee Management
+// ==========================================
+// EMPLOYEE MANAGEMENT (Updated with Filter/Sort)
+// ==========================================
+
 async function loadEmployeeList() {
     const container = document.getElementById('employeesContainer');
     container.innerHTML = `<div class="spinner-border text-primary"></div>`;
+    
+    // Attach Event Listeners for the new filters
+    const searchInput = document.getElementById('employeeSearchInput');
+    if (searchInput) {
+        // Remove old listeners to prevent duplicates
+        const newSearch = searchInput.cloneNode(true);
+        searchInput.parentNode.replaceChild(newSearch, searchInput);
+        newSearch.addEventListener('input', () => { currentEmployeePage = 1; applyEmployeeFilters(); });
+
+        document.getElementById('employeeDeptFilter').addEventListener('change', () => { currentEmployeePage = 1; applyEmployeeFilters(); });
+        document.getElementById('employeeSortFilter').addEventListener('change', () => { currentEmployeePage = 1; applyEmployeeFilters(); });
+        document.getElementById('clearEmployeeFilters').addEventListener('click', clearEmployeeFilters);
+    }
+
     try {
         employeesData = await firebaseService.getAllEmployees();
         currentEmployeePage = 1;
-        displayEmployees(employeesData);
-    } catch (error) { container.innerHTML = `<div class="alert alert-danger">${error.message}</div>`; }
+        applyEmployeeFilters(); // Replaces direct displayEmployees call
+    } catch (error) { 
+        container.innerHTML = `<div class="alert alert-danger">${error.message}</div>`; 
+    }
+}
+
+function applyEmployeeFilters() {
+    const searchTerm = document.getElementById('employeeSearchInput').value.toLowerCase();
+    const deptFilter = document.getElementById('employeeDeptFilter').value;
+    const sortValue = document.getElementById('employeeSortFilter').value;
+
+    // 1. FILTERING
+    let filteredEmployees = employeesData.filter(emp => {
+        const matchesSearch = (emp.name.toLowerCase().includes(searchTerm) || emp.employeeId.toLowerCase().includes(searchTerm));
+        const matchesDept = deptFilter === '' || emp.department === deptFilter;
+        return matchesSearch && matchesDept;
+    });
+
+    // 2. SORTING
+    filteredEmployees.sort((a, b) => {
+        if (sortValue === 'id_asc') {
+            return a.employeeId.localeCompare(b.employeeId, undefined, { numeric: true });
+        } else if (sortValue === 'id_desc') {
+            return b.employeeId.localeCompare(a.employeeId, undefined, { numeric: true });
+        } else if (sortValue === 'date_newest') {
+            const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(0);
+            const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(0);
+            return dateB - dateA;
+        } else if (sortValue === 'date_oldest') {
+            const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(0);
+            const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(0);
+            return dateA - dateB;
+        }
+        return 0;
+    });
+
+    displayEmployees(filteredEmployees);
+}
+
+function clearEmployeeFilters() {
+    document.getElementById('employeeSearchInput').value = '';
+    document.getElementById('employeeDeptFilter').value = '';
+    document.getElementById('employeeSortFilter').value = 'id_asc';
+    currentEmployeePage = 1;
+    applyEmployeeFilters();
 }
 
 function displayEmployees(employees) {
     const container = document.getElementById('employeesContainer');
-    if (employees.length === 0) { container.innerHTML = 'No employees found.'; return; }
+    
+    // Remove existing pagination if it exists to prevent duplicates
+    const existingNav = document.getElementById('employeesPagination');
+    if (existingNav) existingNav.remove();
+
+    if (employees.length === 0) { 
+        container.innerHTML = '<div class="text-center py-4 text-muted">No employees match your filters.</div>'; 
+        return; 
+    }
 
     const totalPages = Math.ceil(employees.length / employeesPerPage);
     if (currentEmployeePage > totalPages) currentEmployeePage = totalPages;
@@ -713,7 +756,7 @@ function displayEmployees(employees) {
     
     let html = `
         <div class="table-responsive">
-            <table class="table table-hover mobile-friendly">
+            <table class="table table-hover mobile-friendly align-middle">
                 <thead class="table-dark">
                     <tr><th>ID</th><th>Name</th><th>Email</th><th>Dept</th><th>Role</th><th>Actions</th></tr>
                 </thead>
@@ -729,7 +772,9 @@ function displayEmployees(employees) {
                 <td><span class="badge bg-light text-dark">${employee.department}</span></td>
                 <td><span class="badge ${getRoleBadgeClass(employee.role)}">${employee.role}</span></td>
                 <td>
-                    <button class="btn btn-outline-danger btn-sm" onclick="deleteEmployee('${employee.id}', '${employee.name}')"><i class="fas fa-trash"></i> Delete</button>
+                    <button class="btn btn-outline-danger btn-sm" onclick="deleteEmployee('${employee.id}', '${employee.name}')">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
                 </td>
             </tr>
         `;
@@ -741,9 +786,13 @@ function displayEmployees(employees) {
         html += `
             <nav id="employeesPagination" class="mt-3">
                 <ul class="pagination justify-content-center">
-                    <li class="page-item ${currentEmployeePage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changeEmployeePage(-1); return false;">Prev</a></li>
+                    <li class="page-item ${currentEmployeePage === 1 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" onclick="changeEmployeePage(-1); return false;">Prev</a>
+                    </li>
                     <li class="page-item disabled"><span class="page-link">${currentEmployeePage} / ${totalPages}</span></li>
-                    <li class="page-item ${currentEmployeePage === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changeEmployeePage(1); return false;">Next</a></li>
+                    <li class="page-item ${currentEmployeePage === totalPages ? 'disabled' : ''}">
+                        <a class="page-link" href="#" onclick="changeEmployeePage(1); return false;">Next</a>
+                    </li>
                 </ul>
             </nav>
         `;
@@ -752,7 +801,10 @@ function displayEmployees(employees) {
     container.innerHTML = html;
 }
 
-window.changeEmployeePage = function(delta) { currentEmployeePage += delta; displayEmployees(employeesData); };
+window.changeEmployeePage = function(delta) { 
+    currentEmployeePage += delta; 
+    applyEmployeeFilters(); 
+};
 
 function getRoleBadgeClass(role) { switch(role) { case 'HR': return 'bg-danger'; case 'Head': return 'bg-warning'; case 'Employee': return 'bg-info'; default: return 'bg-secondary'; } }
 function showAddEmployeeForm() { document.getElementById('employeeFormTitle').textContent = 'Add New Staff'; document.getElementById('employeeForm').reset(); document.getElementById('employeePasswordGroup').style.display = 'block'; new bootstrap.Modal(document.getElementById('employeeModal')).show(); }
@@ -787,5 +839,5 @@ window.showCancelModal = showCancelModal;
 window.submitCancellation = submitCancellation;
 window.approveCancellation = approveCancellation;
 window.rejectCancellation = rejectCancellation;
-window.changeRequestPage = function(delta) { currentRequestPage += delta; applyFilters(); };
-window.changeEmployeePage = function(delta) { currentEmployeePage += delta; displayEmployees(employeesData); };
+window.changeRequestPage = changeRequestPage;
+// window.changeEmployeePage is exported in its definition above

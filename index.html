@@ -232,7 +232,6 @@
     </style>
 </head>
 <body>
-    <!-- Login Page -->
     <div id="loginPage">
         <div class="login-container">
             <div class="card">
@@ -262,7 +261,6 @@
         </div>
     </div>
 
-    <!-- Main Application Page -->
     <div id="appPage" class="app-container">
         <nav class="navbar navbar-expand-lg navbar-dark">
             <div class="container">
@@ -286,13 +284,11 @@
         </nav>
 
         <div class="container mt-4">
-            <!-- Welcome Message -->
             <div class="welcome-message">
                 <h4 id="welcomeTitle">Welcome to Luo City Spa Portal/欢迎来到罗城水疗门户</h4>
                 <p class="mb-0" id="welcomeSubtitle">Manage your schedule and requests efficiently/高效管理您的日程和请求</p>
             </div>
 
-            <!-- Employee View -->
             <div id="employeeView">
                 <div class="row">
                     <div class="col-md-6">
@@ -341,53 +337,54 @@
                         <div class="dashboard-card">
                             <h5 class="mb-3"><i class="fas fa-clock me-2"></i>Overtime & Adjustments/加班与调整</h5>
                             <form id="overtimeForm">
-    <div class="mb-3">
-        <label class="form-label">Request Type/请求类型</label>
-        <select class="form-select" id="overtimeType" required>
-            <option value="Overtime">Overtime/加班</option>
-            <option value="Time Adjustment">Offset/调休</option>
-            <option value="Shift Swap">Change Off/换休</option> </select>
-    </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Request Type/请求类型</label>
+                                    <select class="form-select" id="overtimeType" required>
+                                        <option value="Overtime">Overtime/加班</option>
+                                        <option value="Time Adjustment">Offset/调休</option>
+                                        <option value="Shift Swap">Change Off/换休</option> 
+                                    </select>
+                                </div>
 
-    <div id="standardOvertimeInputs">
-        <div class="row mb-3">
-            <div class="col-md-6">
-                <label class="form-label">Start Date & Time/开始日期时间</label>
-                <input type="datetime-local" class="form-control" id="overtimeStartDate">
-            </div>
-            <div class="col-md-6">
-                <label class="form-label">End Date & Time/结束日期时间</label>
-                <input type="datetime-local" class="form-control" id="overtimeEndDate">
-            </div>
-        </div>
-    </div>
+                                <div id="standardOvertimeInputs">
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Start Date & Time/开始日期时间</label>
+                                            <input type="datetime-local" class="form-control" id="overtimeStartDate">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">End Date & Time/结束日期时间</label>
+                                            <input type="datetime-local" class="form-control" id="overtimeEndDate">
+                                        </div>
+                                    </div>
+                                </div>
 
-    <div id="changeOffInputs" style="display: none;">
-        <div class="row mb-3">
-            <div class="col-md-6">
-                <label class="form-label text-primary fw-bold">Original Off Date/原定休息日</label>
-                <input type="date" class="form-control" id="originalOffDate">
-            </div>
-            <div class="col-md-6">
-                <label class="form-label text-success fw-bold">New Off Date (Chosen)/选择的休息日</label>
-                <input type="date" class="form-control" id="newOffDate">
-            </div>
-        </div>
-    </div>
+                                <div id="changeOffInputs" style="display: none;">
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label text-primary fw-bold">Original Off Date/原定休息日</label>
+                                            <input type="date" class="form-control" id="originalOffDate">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label text-success fw-bold">New Off Date (Chosen)/选择的休息日</label>
+                                            <input type="date" class="form-control" id="newOffDate">
+                                        </div>
+                                    </div>
+                                </div>
 
-    <div class="mb-3">
-        <label class="form-label">Reason/原因</label>
-        <textarea class="form-control" id="overtimeReason" rows="3" required placeholder="Please explain..."></textarea>
-    </div>
-    <div class="d-grid gap-2">
-        <button type="button" class="btn btn-primary" onclick="submitOvertimeRequest()">
-            <i class="fas fa-paper-plane me-2"></i>Submit Request/提交请求
-        </button>
-        <button type="button" class="btn btn-outline-success" onclick="clearOvertimeForm()">
-            <i class="fas fa-times me-2"></i>Clear Form/清除表单
-        </button>
-    </div>
-</form>
+                                <div class="mb-3">
+                                    <label class="form-label">Reason/原因</label>
+                                    <textarea class="form-control" id="overtimeReason" rows="3" required placeholder="Please explain..."></textarea>
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <button type="button" class="btn btn-primary" onclick="submitOvertimeRequest()">
+                                        <i class="fas fa-paper-plane me-2"></i>Submit Request/提交请求
+                                    </button>
+                                    <button type="button" class="btn btn-outline-success" onclick="clearOvertimeForm()">
+                                        <i class="fas fa-times me-2"></i>Clear Form/清除表单
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -395,24 +392,24 @@
                 <div class="dashboard-card">
                     <h5 class="mb-3"><i class="fas fa-history me-2"></i>My Requests/我的请求</h5>
                     <div id="myRequestsContainer">
-                        <!-- Requests will be loaded here -->
-                    </div>
+                        </div>
                 </div>
             </div>
 
-            <!-- Head View -->
             <div id="headView">
                 <div class="dashboard-card">
                     <h5 class="mb-3"><i class="fas fa-tasks me-2"></i>Team Requests/团队请求 <span id="headDepartment" class="badge badge-spa ms-2"></span></h5>
                     <div id="requestsContainer">
-                        <!-- Department requests will be loaded here -->
-                    </div>
+                        </div>
+                </div>
+                <div class="dashboard-card">
+                    <h5 class="mb-3"><i class="fas fa-ban me-2"></i>Cancellation Requests/取消请求</h5>
+                    <div id="cancellationRequestsContainer">
+                        </div>
                 </div>
             </div>
 
-            <!-- HR View -->
             <div id="hrView">
-                <!-- Request Filters -->
                 <div class="dashboard-card">
                     <h5 class="mb-3"><i class="fas fa-filter me-2"></i>Request Filters/请求筛选</h5>
                     <div class="row g-3">
@@ -469,7 +466,12 @@
                     </div>
                 </div>
 
-                <!-- All Requests -->
+                <div class="dashboard-card">
+                    <h5 class="mb-3"><i class="fas fa-ban me-2"></i>All Cancellation Requests/所有取消请求</h5>
+                    <div id="hrCancellationRequestsContainer">
+                        </div>
+                </div>
+
                 <div class="dashboard-card">
                     <h5 class="mb-3"><i class="fas fa-list me-2"></i>All Staff Requests/所有员工请求</h5>
                     <div class="table-responsive">
@@ -482,17 +484,16 @@
                                     <th>Type/类型</th>
                                     <th>Details/详情</th>
                                     <th>Status/状态</th>
+                                    <th>Actions/操作</th>
                                     <th>Submitted/提交时间</th>
                                 </tr>
                             </thead>
                             <tbody id="allRequestsTable">
-                                <!-- All requests will be loaded here -->
-                            </tbody>
+                                </tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- Employee Management -->
                 <div class="dashboard-card">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="mb-0"><i class="fas fa-users me-2"></i>Staff Management/员工管理</h5>
@@ -500,15 +501,43 @@
                             <i class="fas fa-plus me-1"></i>Add Employee/添加员工
                         </button>
                     </div>
-                    <div id="employeesContainer">
-                        <!-- Employee list will be loaded here -->
+
+                    <div class="row g-2 mb-3 bg-light p-2 rounded">
+                        <div class="col-md-4">
+                            <input type="text" class="form-control form-control-sm" id="employeeSearchInput" placeholder="Search Name or ID/搜索姓名或ID...">
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select form-select-sm" id="employeeDeptFilter">
+                                <option value="">All Departments/所有部门</option>
+                                <option value="Operations">Operations/运营部</option>
+                                <option value="Therapist">Therapist/理疗师</option>
+                                <option value="Back Office">Back Office/后勤部</option>
+                                <option value="Technical">Technical/技术部</option>
+                                <option value="Kitchen">Kitchen/厨房</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select form-select-sm" id="employeeSortFilter">
+                                <option value="id_asc">Sort by ID (Asc)/按ID升序</option>
+                                <option value="id_desc">Sort by ID (Desc)/按ID降序</option>
+                                <option value="date_newest">Date Added (Newest)/按日期(最新)</option>
+                                <option value="date_oldest">Date Added (Oldest)/按日期(最早)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-grid">
+                            <button class="btn btn-outline-secondary btn-sm" id="clearEmployeeFilters">
+                                <i class="fas fa-undo"></i> Reset
+                            </button>
+                        </div>
                     </div>
+
+                    <div id="employeesContainer">
+                        </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Message Modal -->
     <div class="modal fade" id="messageModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -526,7 +555,6 @@
         </div>
     </div>
 
-    <!-- Employee Form Modal -->
     <div class="modal fade" id="employeeModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -588,7 +616,6 @@
         </div>
     </div>
 
-    <!-- Excel Download Modal -->
     <div class="modal fade" id="excelModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -624,37 +651,37 @@
             </div>
         </div>
     </div>
-    <!-- Cancel Request Modal -->
-<div class="modal fade" id="cancelModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-ban me-2"></i>Cancel Request/取消请求</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p class="text-muted mb-3">Please provide a reason for cancellation:/请提供取消原因：</p>
-                <div class="mb-3">
-                    <label class="form-label">Cancellation Reason/取消原因</label>
-                    <textarea class="form-control" id="cancelReason" rows="3" required placeholder="Explain why you want to cancel this request.../解释您为什么要取消此请求..."></textarea>
+
+    <div class="modal fade" id="cancelModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-ban me-2"></i>Cancel Request/取消请求</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="alert alert-info">
-                    <small>
-                        <i class="fas fa-info-circle me-1"></i>
-                        <strong>Note:</strong> If your request is pending, it will be cancelled immediately. If it's already approved, a cancellation request will be sent to your manager for approval.<br>
-                        <strong>注意：</strong> 如果您的请求待处理，将立即取消。如果已批准，将向您的经理发送取消请求等待批准。
-                    </small>
+                <div class="modal-body">
+                    <p class="text-muted mb-3">Please provide a reason for cancellation:/请提供取消原因：</p>
+                    <div class="mb-3">
+                        <label class="form-label">Cancellation Reason/取消原因</label>
+                        <textarea class="form-control" id="cancelReason" rows="3" required placeholder="Explain why you want to cancel this request.../解释您为什么要取消此请求..."></textarea>
+                    </div>
+                    <div class="alert alert-info">
+                        <small>
+                            <i class="fas fa-info-circle me-1"></i>
+                            <strong>Note:</strong> If your request is pending, it will be cancelled immediately. If it's already approved, a cancellation request will be sent to your manager for approval.<br>
+                            <strong>注意：</strong> 如果您的请求待处理，将立即取消。如果已批准，将向您的经理发送取消请求等待批准。
+                        </small>
+                    </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-success" data-bs-dismiss="modal">Cancel/取消</button>
-                <button type="button" class="btn btn-warning" onclick="submitCancellation()">
-                    <i class="fas fa-ban me-1"></i>Submit Cancellation/提交取消请求
-                </button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-success" data-bs-dismiss="modal">Cancel/取消</button>
+                    <button type="button" class="btn btn-warning" onclick="submitCancellation()">
+                        <i class="fas fa-ban me-1"></i>Submit Cancellation/提交取消请求
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script type="module" src="app.js"></script>
